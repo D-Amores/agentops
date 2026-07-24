@@ -5,6 +5,9 @@ description = "AgentOps backend: agentic orchestration API with LangGraph, MCP a
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "alembic>=1.18.5",
+    "asyncpg>=0.31.0",
     "fastapi[standard]>=0.139.2",
     "pydantic-settings>=2.14.2",
+    "sqlalchemy[asyncio]>=2.0.51",
 ]
