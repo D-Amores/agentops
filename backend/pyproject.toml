@@ -1,0 +1,10 @@
+[project]
+name = "agentops-backend"
+version = "0.1.0"
+description = "AgentOps backend: agentic orchestration API with LangGraph, MCP and RAG"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.139.2",
+    "pydantic-settings>=2.14.2",
+]
