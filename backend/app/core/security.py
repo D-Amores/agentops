@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
+from typing import Any
 from uuid import UUID
 
 import jwt
@@ -20,7 +21,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return password_hash.verify(plain_password, hashed_password)
 
 
-class TokenType(str, Enum):
+class TokenType(StrEnum):
     ACCESS = "access"
     REFRESH = "refresh"
 
@@ -41,10 +42,8 @@ def create_refresh_token(user_id: UUID) -> str:
     )
 
 
-def _create_token(
-    user_id: UUID, token_type: TokenType, expires_delta: timedelta
-) -> str:
-    now = datetime.now(timezone.utc)
+def _create_token(user_id: UUID, token_type: TokenType, expires_delta: timedelta) -> str:
+    now = datetime.now(UTC)
     payload = {
         "sub": str(user_id),
         "type": token_type.value,
@@ -54,5 +53,5 @@ def _create_token(
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
-def decode_token(token: str) -> dict:
+def decode_token(token: str) -> dict[str, Any]:
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
