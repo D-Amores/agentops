@@ -1,9 +1,11 @@
+import uuid
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 from uuid import UUID
 
 import jwt
+import redis.asyncio as redis
 from pwdlib import PasswordHash
 
 from app.core.config import get_settings
@@ -47,6 +49,7 @@ def _create_token(user_id: UUID, token_type: TokenType, expires_delta: timedelta
     payload = {
         "sub": str(user_id),
         "type": token_type.value,
+        "jti": str(uuid.uuid4()),
         "iat": now,
         "exp": now + expires_delta,
     }
@@ -55,3 +58,14 @@ def _create_token(user_id: UUID, token_type: TokenType, expires_delta: timedelta
 
 def decode_token(token: str) -> dict[str, Any]:
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+
+
+async def revoke_token(payload: dict[str, Any], redis_client: redis.Redis) -> None:
+    jti = payload["jti"]
+    exp = payload["exp"]
+    ttl = max(exp - int(datetime.now(UTC).timestamp()), 0)
+    await redis_client.set(f"blacklist:{jti}", "1", ex=ttl)
+
+
+async def is_token_revoked(jti: str, redis_client: redis.Redis) -> bool:
+    return await redis_client.exists(f"blacklist:{jti}") > 0
