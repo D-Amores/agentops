@@ -16,7 +16,7 @@ class WorkflowStatus(StrEnum):
 
 
 @dataclass
-class workflow:
+class Workflow:
     owner_id: UUID
     name: str
     system_prompt: str
