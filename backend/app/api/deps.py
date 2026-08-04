@@ -13,7 +13,9 @@ from app.core.redis import get_redis
 from app.core.security import TokenType, decode_token, is_token_revoked
 from app.domain.user import User, UserRole
 from app.repositories.user_repository import SQLAlchemyUserRepository
+from app.repositories.workflow_repository import SQLAlchemyWorkflowRepository
 from app.services.auth_service import AuthService
+from app.services.workflow_service import WorkflowService
 
 
 def get_user_repository(
@@ -27,6 +29,18 @@ def get_auth_service(
     redis_client: Annotated[redis.Redis, Depends(get_redis)],
 ) -> AuthService:
     return AuthService(user_repository, redis_client)
+
+
+def get_workflow_repository(
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> SQLAlchemyWorkflowRepository:
+    return SQLAlchemyWorkflowRepository(db)
+
+
+def get_workflow_service(
+    workflow_repository: Annotated[SQLAlchemyWorkflowRepository, Depends(get_workflow_repository)],
+) -> WorkflowService:
+    return WorkflowService(workflow_repository)
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
