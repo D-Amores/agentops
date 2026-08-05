@@ -3,12 +3,12 @@ import pytest
 from app.core.exceptions import EmailAlreadyExistsError, InvalidCredentialsError
 from app.schemas.auth import LoginRequest, RegisterRequest
 from app.services.auth_service import AuthService
-from tests.fakes import FakeUserRepository
+from tests.fakes import FakeRedis, FakeUserRepository
 
 
 @pytest.fixture
 def auth_service() -> AuthService:
-    return AuthService(FakeUserRepository())
+    return AuthService(FakeUserRepository(), FakeRedis())
 
 
 async def test_register_creates_user_and_returns_tokens(auth_service: AuthService) -> None:

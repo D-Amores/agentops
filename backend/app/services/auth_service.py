@@ -1,8 +1,8 @@
 from uuid import UUID
 
-import redis.asyncio as redis
 from jwt import InvalidTokenError
 
+from app.core.cache import RedisProtocol
 from app.core.exceptions import EmailAlreadyExistsError, InvalidCredentialsError
 from app.core.security import (
     TokenType,
@@ -26,7 +26,9 @@ from app.schemas.auth import (
 
 
 class AuthService:
-    def __init__(self, user_repository: UserRepositoryProtocol, redis_client: redis.Redis) -> None:
+    def __init__(
+        self, user_repository: UserRepositoryProtocol, redis_client: RedisProtocol
+    ) -> None:
         self._user_repository = user_repository
         self._redis_client = redis_client
 
