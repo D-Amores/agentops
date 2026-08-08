@@ -14,7 +14,9 @@ from app.core.security import TokenType, decode_token, is_token_revoked
 from app.domain.user import User, UserRole
 from app.repositories.user_repository import SQLAlchemyUserRepository
 from app.repositories.workflow_repository import SQLAlchemyWorkflowRepository
+from app.repositories.workflow_run_repository import SQLAlchemyWorkflowRunRepository
 from app.services.auth_service import AuthService
+from app.services.workflow_execution_service import WorkflowExecutionService
 from app.services.workflow_service import WorkflowService
 
 
@@ -90,3 +92,18 @@ def require_role(*allowed_roles: UserRole) -> Callable[..., Coroutine[Any, Any, 
         return current_user
 
     return role_checker
+
+
+def get_workflow_run_repository(
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> SQLAlchemyWorkflowRunRepository:
+    return SQLAlchemyWorkflowRunRepository(db)
+
+
+def get_workflow_execution_service(
+    workflow_service: Annotated[WorkflowService, Depends(get_workflow_service)],
+    workflow_run_repository: Annotated[
+        SQLAlchemyWorkflowRunRepository, Depends(get_workflow_run_repository)
+    ],
+) -> WorkflowExecutionService:
+    return WorkflowExecutionService(workflow_service, workflow_run_repository)
