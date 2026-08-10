@@ -29,7 +29,7 @@ class WorkflowExecutionService:
         run = await self._workflow_run_repository.create(run)
 
         try:
-            graph = build_agent_graph(workflow.llm_model)
+            graph = await build_agent_graph(workflow.llm_model)
             result = await graph.ainvoke(
                 {
                     "messages": [
