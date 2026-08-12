@@ -32,3 +32,9 @@ class WorkflowNotExecutableError(DomainError):
     def __init__(self, workflow_id: UUID) -> None:
         self.workflow_id = workflow_id
         super().__init__(f"Workflow '{workflow_id}' is not active and cannot be executed")
+
+
+class DocumentNotFoundError(DomainError):
+    def __init__(self, document_id: UUID) -> None:
+        self.document_id = document_id
+        super().__init__(f"Document with id '{document_id}' not found")
