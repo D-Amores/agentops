@@ -38,3 +38,13 @@ class DocumentNotFoundError(DomainError):
     def __init__(self, document_id: UUID) -> None:
         self.document_id = document_id
         super().__init__(f"Document with id '{document_id}' not found")
+
+
+class ResourcePermissionError(DomainError):
+    def __init__(self) -> None:
+        super().__init__("You don't have permission to access this resource")
+
+
+class WorkflowPermissionError(DomainError):
+    def __init__(self) -> None:
+        super().__init__("You don't have permission to access this workflow")

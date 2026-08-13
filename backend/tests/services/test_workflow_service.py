@@ -2,11 +2,11 @@ from uuid import uuid4
 
 import pytest
 
-from app.core.exceptions import WorkflowNotFoundError
+from app.core.exceptions import ResourcePermissionError, WorkflowNotFoundError
 from app.domain.user import User, UserRole
 from app.domain.workflow import WorkflowStatus
 from app.schemas.workflow import CreateWorkflowRequest, UpdateWorkflowRequest
-from app.services.workflow_service import WorkflowPermissionError, WorkflowService
+from app.services.workflow_service import WorkflowService
 from tests.fakes import FakeWorkflowRepository
 
 
@@ -50,7 +50,7 @@ async def test_other_user_cannot_access_workflow(
     data = CreateWorkflowRequest(name="Private Workflow", system_prompt="Secret prompt.")
     created = await workflow_service.create(owner, data)
 
-    with pytest.raises(WorkflowPermissionError):
+    with pytest.raises(ResourcePermissionError):
         await workflow_service.get_by_id(other_user, created.id)
 
 
@@ -91,7 +91,7 @@ async def test_other_user_cannot_delete_workflow(
     data = CreateWorkflowRequest(name="Protected Workflow", system_prompt="Prompt.")
     created = await workflow_service.create(owner, data)
 
-    with pytest.raises(WorkflowPermissionError):
+    with pytest.raises(ResourcePermissionError):
         await workflow_service.delete(other_user, created.id)
 
 

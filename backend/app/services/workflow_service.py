@@ -1,15 +1,10 @@
 from uuid import UUID
 
-from app.core.exceptions import DomainError, WorkflowNotFoundError
+from app.core.exceptions import ResourcePermissionError, WorkflowNotFoundError
 from app.domain.user import User
 from app.domain.workflow import Workflow
 from app.repositories.workflow_repository import WorkflowRepositoryProtocol
 from app.schemas.workflow import CreateWorkflowRequest, UpdateWorkflowRequest
-
-
-class WorkflowPermissionError(DomainError):
-    def __init__(self) -> None:
-        super().__init__("You don't have permission to access this workflow")
 
 
 class WorkflowService:
@@ -60,4 +55,4 @@ class WorkflowService:
         if requester.is_admin() or workflow.belongs_to_user(requester.id):
             return
 
-        raise WorkflowPermissionError()
+        raise ResourcePermissionError()

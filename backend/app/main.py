@@ -9,10 +9,10 @@ from app.core.config import get_settings
 from app.core.exceptions import (
     EmailAlreadyExistsError,
     InvalidCredentialsError,
+    ResourcePermissionError,
     WorkflowNotExecutableError,
     WorkflowNotFoundError,
 )
-from app.services.workflow_service import WorkflowPermissionError
 
 settings = get_settings()
 
@@ -43,9 +43,9 @@ async def workflow_not_found_handler(request: Request, exc: WorkflowNotFoundErro
     return JSONResponse(status_code=404, content={"detail": str(exc)})
 
 
-@app.exception_handler(WorkflowPermissionError)
-async def workflow_permission_handler(
-    request: Request, exc: WorkflowPermissionError
+@app.exception_handler(ResourcePermissionError)
+async def resource_permission_handler(
+    request: Request, exc: ResourcePermissionError
 ) -> JSONResponse:
     return JSONResponse(status_code=403, content={"detail": str(exc)})
 
