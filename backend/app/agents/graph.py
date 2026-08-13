@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any, Protocol
+from uuid import UUID
 
 from langchain_core.tools import BaseTool
 from langchain_deepseek import ChatDeepSeek
@@ -9,9 +10,11 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 from pydantic import SecretStr
 
+from app.agents.rag_tool import build_search_documents_tool
 from app.agents.state import AgentState
 from app.agents.tools import get_current_datetime
 from app.core.config import get_settings
+from app.repositories.document_chunk_repository import DocumentChunkRepositoryProtocol
 
 settings = get_settings()
 
@@ -32,9 +35,12 @@ class _ModelNode(Protocol):
     async def __call__(self, state: AgentState) -> dict[str, Any]: ...
 
 
-async def _build_call_model_node(model: str) -> tuple[_ModelNode, list[BaseTool]]:
+async def _build_call_model_node(
+    model: str, owner_id: UUID, chunk_repository: DocumentChunkRepositoryProtocol
+) -> tuple[_ModelNode, list[BaseTool]]:
     mcp_tools = await MCP_CLIENT.get_tools()
-    all_tools = [get_current_datetime, *mcp_tools]
+    rag_tools = build_search_documents_tool(owner_id, chunk_repository)
+    all_tools = [get_current_datetime, rag_tools, *mcp_tools]
 
     llm = ChatDeepSeek(model=model, api_key=SecretStr(settings.DEEPSEEK_API_KEY), temperature=0)
     llm_with_tools = llm.bind_tools(all_tools)
@@ -47,9 +53,9 @@ async def _build_call_model_node(model: str) -> tuple[_ModelNode, list[BaseTool]
 
 
 async def build_agent_graph(
-    model: str,
+    model: str, owner_id: UUID, chunk_repository: DocumentChunkRepositoryProtocol
 ) -> CompiledStateGraph[AgentState, None, AgentState, AgentState]:
-    call_model_node, all_tools = await _build_call_model_node(model)
+    call_model_node, all_tools = await _build_call_model_node(model, owner_id, chunk_repository)
 
     graph = StateGraph(AgentState)
 

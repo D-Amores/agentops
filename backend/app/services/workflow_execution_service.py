@@ -6,6 +6,7 @@ from app.agents.graph import build_agent_graph
 from app.core.exceptions import WorkflowNotExecutableError
 from app.domain.user import User
 from app.domain.workflow_run import WorkflowRun
+from app.repositories.document_chunk_repository import DocumentChunkRepositoryProtocol
 from app.repositories.workflow_run_repository import WorkflowRunRepositoryProtocol
 from app.services.workflow_service import WorkflowService
 
@@ -15,9 +16,11 @@ class WorkflowExecutionService:
         self,
         workflow_service: WorkflowService,
         workflow_run_repository: WorkflowRunRepositoryProtocol,
+        document_chunk_repository: DocumentChunkRepositoryProtocol,
     ) -> None:
         self._workflow_service = workflow_service
         self._workflow_run_repository = workflow_run_repository
+        self._document_chunk_repository = document_chunk_repository
 
     async def execute(self, requester: User, workflow_id: UUID, message: str) -> WorkflowRun:
         workflow = await self._workflow_service.get_by_id(requester, workflow_id)
@@ -29,7 +32,9 @@ class WorkflowExecutionService:
         run = await self._workflow_run_repository.create(run)
 
         try:
-            graph = await build_agent_graph(workflow.llm_model)
+            graph = await build_agent_graph(
+                workflow.llm_model, requester.id, self._document_chunk_repository
+            )
             result = await graph.ainvoke(
                 {
                     "messages": [

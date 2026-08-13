@@ -103,25 +103,30 @@ def get_workflow_run_repository(
     return SQLAlchemyWorkflowRunRepository(db)
 
 
+def get_document_chunk_repository(
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> SQLAlchemyDocumentChunkRepository:
+    return SQLAlchemyDocumentChunkRepository(db)
+
+
 def get_workflow_execution_service(
     workflow_service: Annotated[WorkflowService, Depends(get_workflow_service)],
     workflow_run_repository: Annotated[
         SQLAlchemyWorkflowRunRepository, Depends(get_workflow_run_repository)
     ],
+    document_chunk_repository: Annotated[
+        SQLAlchemyDocumentChunkRepository, Depends(get_document_chunk_repository)
+    ],
 ) -> WorkflowExecutionService:
-    return WorkflowExecutionService(workflow_service, workflow_run_repository)
+    return WorkflowExecutionService(
+        workflow_service, workflow_run_repository, document_chunk_repository
+    )
 
 
 def get_document_repository(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> SQLAlchemyDocumentRepository:
     return SQLAlchemyDocumentRepository(db)
-
-
-def get_document_chunk_repository(
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> SQLAlchemyDocumentChunkRepository:
-    return SQLAlchemyDocumentChunkRepository(db)
 
 
 def get_document_service(
