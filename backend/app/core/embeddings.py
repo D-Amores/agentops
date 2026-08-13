@@ -7,7 +7,7 @@ from app.models.document import EMBEDDING_DIMENSIONS
 settings = get_settings()
 
 embeddings_client = OpenAIEmbeddings(
-    model="text-embeddig-3-small",
+    model="text-embedding-3-small",
     api_key=SecretStr(settings.OPENAI_API_KEY),
     dimensions=EMBEDDING_DIMENSIONS,
 )

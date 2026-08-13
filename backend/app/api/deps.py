@@ -12,10 +12,13 @@ from app.core.database import get_db
 from app.core.redis import get_redis
 from app.core.security import TokenType, decode_token, is_token_revoked
 from app.domain.user import User, UserRole
+from app.repositories.document_chunk_repository import SQLAlchemyDocumentChunkRepository
+from app.repositories.document_repository import SQLAlchemyDocumentRepository
 from app.repositories.user_repository import SQLAlchemyUserRepository
 from app.repositories.workflow_repository import SQLAlchemyWorkflowRepository
 from app.repositories.workflow_run_repository import SQLAlchemyWorkflowRunRepository
 from app.services.auth_service import AuthService
+from app.services.document_service import DocumentService
 from app.services.workflow_execution_service import WorkflowExecutionService
 from app.services.workflow_service import WorkflowService
 
@@ -107,3 +110,24 @@ def get_workflow_execution_service(
     ],
 ) -> WorkflowExecutionService:
     return WorkflowExecutionService(workflow_service, workflow_run_repository)
+
+
+def get_document_repository(
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> SQLAlchemyDocumentRepository:
+    return SQLAlchemyDocumentRepository(db)
+
+
+def get_document_chunk_repository(
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> SQLAlchemyDocumentChunkRepository:
+    return SQLAlchemyDocumentChunkRepository(db)
+
+
+def get_document_service(
+    document_repository: Annotated[SQLAlchemyDocumentRepository, Depends(get_document_repository)],
+    document_chunk_repository: Annotated[
+        SQLAlchemyDocumentChunkRepository, Depends(get_document_chunk_repository)
+    ],
+) -> DocumentService:
+    return DocumentService(document_repository, document_chunk_repository)
