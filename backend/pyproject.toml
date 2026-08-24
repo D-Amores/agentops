@@ -8,8 +8,46 @@ dependencies = [
     "alembic>=1.18.5",
     "asyncpg>=0.31.0",
     "fastapi[standard]>=0.139.2",
+    "fastmcp>=3.0,<4.0",
+    "httpx>=0.28.1",
+    "langchain-deepseek>=1.1.0",
+    "langchain-mcp-adapters>=0.3.2",
+    "langchain-openai>=1.4.1",
+    "langchain-text-splitters>=1.1.2",
+    "langgraph>=1.2.10",
+    "pgvector>=0.5.0",
     "pwdlib[argon2]>=0.3.0",
     "pydantic-settings>=2.14.2",
+    "pydantic[email]>=2.13.4",
     "pyjwt>=2.13.0",
+    "redis>=8.1.0",
     "sqlalchemy[asyncio]>=2.0.51",
 ]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "mypy>=2.3.0",
+    "pre-commit>=4.6.1",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+exclude = ["migrations"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

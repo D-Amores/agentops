@@ -1,10 +1,13 @@
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+import uuid
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
+from typing import Any
 from uuid import UUID
 
 import jwt
 from pwdlib import PasswordHash
 
+from app.core.cache import RedisProtocol
 from app.core.config import get_settings
 
 settings = get_settings()
@@ -20,7 +23,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return password_hash.verify(plain_password, hashed_password)
 
 
-class TokenType(str, Enum):
+class TokenType(StrEnum):
     ACCESS = "access"
     REFRESH = "refresh"
 
@@ -41,18 +44,28 @@ def create_refresh_token(user_id: UUID) -> str:
     )
 
 
-def _create_token(
-    user_id: UUID, token_type: TokenType, expires_delta: timedelta
-) -> str:
-    now = datetime.now(timezone.utc)
+def _create_token(user_id: UUID, token_type: TokenType, expires_delta: timedelta) -> str:
+    now = datetime.now(UTC)
     payload = {
         "sub": str(user_id),
         "type": token_type.value,
+        "jti": str(uuid.uuid4()),
         "iat": now,
         "exp": now + expires_delta,
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
-def decode_token(token: str) -> dict:
+def decode_token(token: str) -> dict[str, Any]:
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+
+
+async def revoke_token(payload: dict[str, Any], redis_client: RedisProtocol) -> None:
+    jti = payload["jti"]
+    exp = payload["exp"]
+    ttl = max(exp - int(datetime.now(UTC).timestamp()), 0)
+    await redis_client.set(f"blacklist:{jti}", "1", ex=ttl)
+
+
+async def is_token_revoked(jti: str, redis_client: RedisProtocol) -> bool:
+    return await redis_client.exists(f"blacklist:{jti}") > 0
